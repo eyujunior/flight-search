@@ -95,8 +95,8 @@ export default function FlightCard({ offer }: { offer: FlightCardVM }) {
             justifyContent="space-between"
             alignItems="baseline"
           >
-            <Typography fontWeight={800}>{airlineLabel}</Typography>
-            <Typography fontWeight={900} fontSize={18}>
+            <Typography fontWeight={900}>{airlineLabel}</Typography>
+            <Typography color="primary.main" fontWeight={700} fontSize={18}>
               {offer.currency} {offer.priceTotal.toFixed(0)}
             </Typography>
           </Stack>
@@ -107,7 +107,7 @@ export default function FlightCard({ offer }: { offer: FlightCardVM }) {
             alignItems="center"
           >
             <Box>
-              <Typography fontWeight={800} fontSize={18}>
+              <Typography fontWeight={700} fontSize={18}>
                 {formatTime(offer.departAt)}
               </Typography>
               <Typography variant="caption" color="text.secondary">
@@ -120,7 +120,7 @@ export default function FlightCard({ offer }: { offer: FlightCardVM }) {
             </Typography>
 
             <Box sx={{ textAlign: "right" }}>
-              <Typography fontWeight={800} fontSize={18}>
+              <Typography fontWeight={700} fontSize={18}>
                 {formatTime(offer.arriveAt)}
               </Typography>
               <Typography variant="caption" color="text.secondary">

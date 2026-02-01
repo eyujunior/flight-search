@@ -1,10 +1,22 @@
 "use client";
 
-import { Alert, Box, CircularProgress, Typography, Grid } from "@mui/material";
+import * as React from "react";
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  Stack,
+  Grid,
+  Typography,
+} from "@mui/material";
+
 import type { FlightSearchParams } from "@/hooks/useFlightOffers";
 import { useFlightOffers } from "@/hooks/useFlightOffers";
 import { toOfferCards } from "@/hooks/transformOffers";
 import FlightCard from "@/components/FlightCard";
+import FlightFilters, {
+  type FlightFiltersState,
+} from "@/components/FlightFilters";
 
 export default function FlightResults({
   params,
@@ -13,7 +25,72 @@ export default function FlightResults({
   params: FlightSearchParams | null;
   enabled: boolean;
 }) {
+  // ✅ Hook 1: query (always called)
   const q = useFlightOffers(params, enabled);
+
+  // ✅ Hook 2: derive cards (always called)
+  const cards = React.useMemo(() => toOfferCards(q.data), [q.data]);
+
+  // ✅ Hook 3: derive currency/options/bounds (always called)
+  const currency = cards[0]?.currency ?? "USD";
+
+  const priceBounds = React.useMemo<[number, number]>(() => {
+    if (!cards.length) return [0, 0];
+    let min = Infinity;
+    let max = -Infinity;
+    for (const c of cards) {
+      if (c.priceTotal < min) min = c.priceTotal;
+      if (c.priceTotal > max) max = c.priceTotal;
+    }
+    return [Math.floor(min), Math.ceil(max)];
+  }, [cards]);
+
+  const airlinesOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    for (const c of cards) {
+      for (const a of c.airlineCodes) set.add(a);
+    }
+    return Array.from(set).sort();
+  }, [cards]);
+
+  // ✅ Hook 4: filters state (always called)
+  const [filters, setFilters] = React.useState<FlightFiltersState>({
+    stops: "any",
+    priceRange: [0, 0],
+    airlines: [],
+  });
+
+  // ✅ Hook 5: sync price slider bounds when results change (always called)
+  React.useEffect(() => {
+    setFilters((prev) => ({
+      ...prev,
+      priceRange: priceBounds,
+    }));
+  }, [priceBounds[0], priceBounds[1]]);
+
+  // ✅ Hook 6: apply filters (always called)
+  const filteredCards = React.useMemo(() => {
+    if (!cards.length) return [];
+    const [minP, maxP] = filters.priceRange;
+
+    return cards.filter((c) => {
+      // Stops
+      if (filters.stops === "0" && c.stops !== 0) return false;
+      if (filters.stops === "1" && c.stops !== 1) return false;
+      if (filters.stops === "2+" && c.stops < 2) return false;
+
+      // Price
+      if (c.priceTotal < minP || c.priceTotal > maxP) return false;
+
+      // Airlines (match ANY selected)
+      if (filters.airlines.length > 0) {
+        const has = filters.airlines.some((a) => c.airlineCodes.includes(a));
+        if (!has) return false;
+      }
+
+      return true;
+    });
+  }, [cards, filters]);
 
   if (!enabled) return null;
 
@@ -34,8 +111,6 @@ export default function FlightResults({
     );
   }
 
-  const cards = toOfferCards(q.data);
-
   if (!cards.length) {
     return (
       <Alert severity="info">
@@ -46,17 +121,43 @@ export default function FlightResults({
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Typography color="text.secondary" sx={{ mb: 1.5 }}>
-        {cards.length} offers found
-      </Typography>
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        spacing={2}
+        alignItems="stretch"
+      >
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            justifyContent="space-between"
+            alignItems={{ xs: "flex-start", sm: "center" }}
+            sx={{ mb: 1.5 }}
+          >
+            <Typography color="text.secondary">
+              Showing {filteredCards.length} of {cards.length} offers
+            </Typography>
+          </Stack>
 
-      <Grid container spacing={2}>
-        {cards.map((c) => (
-          <Grid key={c.id} size={{ xs: 12, sm: 6, md: 4, xl: 3 }}>
-            <FlightCard offer={c} />
+          <Grid container spacing={2}>
+            {filteredCards.map((c) => (
+              <Grid key={c.id} size={{ xs: 12, md: 6, lg: 4 }}>
+                <FlightCard offer={c} />
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
+        </Box>
+
+        <Box sx={{ width: { xs: "100%", md: 360 }, flexShrink: 0 }}>
+          <FlightFilters
+            currency={currency}
+            airlinesOptions={airlinesOptions}
+            priceBounds={priceBounds}
+            value={filters}
+            onChange={setFilters}
+          />
+        </Box>
+      </Stack>
     </Box>
   );
 }
