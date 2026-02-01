@@ -5,8 +5,12 @@ import { Box, Stack, Typography } from "@mui/material";
 import Header from "@/components/layout/Header";
 import AppLayout from "@/layout/AppLayout";
 import SearchForm, { SearchFormValues } from "@/components/SearchForm";
+import FlightResults from "@/components/FlightResults";
+import type { FlightSearchParams } from "@/hooks/useFlightOffers";
 
 export default function HomePage() {
+  const [submitted, setSubmitted] = useState<FlightSearchParams | null>(null);
+
   const [form, setForm] = useState<SearchFormValues>({
     origin: null,
     destination: null,
@@ -31,15 +35,18 @@ export default function HomePage() {
             onChange={setForm}
             onSubmit={() => {
               if (!canSearch) return;
-              // next step: trigger search results
-              console.log("Searching", {
-                origin: form.origin?.code,
-                destination: form.destination?.code,
+
+              setSubmitted({
+                origin: form.origin!.code,
+                destination: form.destination!.code,
                 departureDate: form.departureDate,
+                returnDate: form.returnDate ? form.returnDate : undefined,
                 adults: form.adults,
               });
             }}
           />
+
+          <FlightResults params={submitted} enabled={!!submitted} />
         </Stack>
       </AppLayout>
     </Box>

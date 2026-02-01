@@ -20,13 +20,12 @@ import { useLocations, type LocationOption } from "@/hooks/useLocations";
 export type SearchFormValues = {
   origin: LocationOption | null;
   destination: LocationOption | null;
-  departureDate: string; // YYYY-MM-DD
-  returnDate: string; // YYYY-MM-DD (optional allowed)
+  departureDate: string;
+  returnDate: string;
   adults: number;
 };
 
 function optionLabel(o: LocationOption) {
-  // Prefer city if available; otherwise use name
   const primary = o.city?.trim() ? o.city : o.name;
   return `${primary} (${o.code})`;
 }
@@ -71,18 +70,15 @@ export default function SearchForm({
       destination: value.origin,
     });
 
-  // Controlled input strings for Autocomplete (what user types)
   const [originInput, setOriginInput] = React.useState("");
   const [destinationInput, setDestinationInput] = React.useState("");
 
-  // Debounced queries to avoid spamming API
   const originQ = useDebouncedValue(originInput, 250);
   const destinationQ = useDebouncedValue(destinationInput, 250);
 
   const originQuery = useLocations(originQ);
   const destinationQuery = useLocations(destinationQ);
 
-  // If user clears Departure, also clear Return (nice UX)
   React.useEffect(() => {
     if (!value.departureDate && value.returnDate) {
       update({ returnDate: "" });
@@ -91,7 +87,7 @@ export default function SearchForm({
   }, [value.departureDate]);
 
   return (
-    <Paper variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
       <Grid container spacing={2} alignItems="center">
         <Grid size={{ xs: 12, sm: 5.5, md: 5, lg: 3.5, xl: 2.5 }}>
           <Autocomplete
@@ -133,7 +129,6 @@ export default function SearchForm({
           />
         </Grid>
 
-        {/* Swap */}
         <Grid
           size={{ xs: 12, sm: 1, md: 2, lg: 1.5, xl: "auto" }}
           sx={{
@@ -156,7 +151,6 @@ export default function SearchForm({
           </IconButton>
         </Grid>
 
-        {/* To */}
         <Grid size={{ xs: 12, sm: 5.5, md: 5, lg: 3.5, xl: 2.5 }}>
           <Autocomplete
             options={destinationQuery.data ?? []}
@@ -197,7 +191,6 @@ export default function SearchForm({
           />
         </Grid>
 
-        {/* Departure */}
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3.5, xl: 2 }}>
           <TextField
             label="Departure"
@@ -209,7 +202,6 @@ export default function SearchForm({
           />
         </Grid>
 
-        {/* Return */}
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 2 }}>
           <TextField
             label="Return"
@@ -225,7 +217,6 @@ export default function SearchForm({
           />
         </Grid>
 
-        {/* Adults */}
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 1 }}>
           <TextField
             label="Adults"
@@ -237,7 +228,6 @@ export default function SearchForm({
           />
         </Grid>
 
-        {/* Search button */}
         <Grid
           sx={{
             marginX: { xs: 0, md: "auto" },
