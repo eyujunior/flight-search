@@ -10,8 +10,7 @@ export default function Header() {
         backgroundColor: "background.paper",
         borderBottom: "1px solid",
         borderColor: "divider",
-        borderRadius: 2,
-        boxShadow: "0px 1px 10px rgba(0,0,0,0.08)",
+        boxShadow: "0px 3px 10px rgba(0,0,0,0.05)",
       }}
     >
       <Toolbar
