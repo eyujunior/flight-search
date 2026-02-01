@@ -41,7 +41,7 @@ export default function FlightFilters({
   return (
     <Paper
       variant="outlined"
-      sx={{ p: 2, borderRadius: 3, marginTop: { xs: 4.5 } }}
+      sx={{ p: 2, borderRadius: 3, marginY: { xs: 4.5 } }}
     >
       <Stack spacing={2}>
         <Typography fontWeight={800}>Filters</Typography>

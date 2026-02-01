@@ -17,6 +17,7 @@ import FlightCard from "@/components/FlightCard";
 import FlightFilters, {
   type FlightFiltersState,
 } from "@/components/FlightFilters";
+import PriceGraph from "./Pricegraph";
 
 export default function FlightResults({
   params,
@@ -25,13 +26,10 @@ export default function FlightResults({
   params: FlightSearchParams | null;
   enabled: boolean;
 }) {
-  // ✅ Hook 1: query (always called)
   const q = useFlightOffers(params, enabled);
 
-  // ✅ Hook 2: derive cards (always called)
   const cards = React.useMemo(() => toOfferCards(q.data), [q.data]);
 
-  // ✅ Hook 3: derive currency/options/bounds (always called)
   const currency = cards[0]?.currency ?? "USD";
 
   const priceBounds = React.useMemo<[number, number]>(() => {
@@ -53,14 +51,12 @@ export default function FlightResults({
     return Array.from(set).sort();
   }, [cards]);
 
-  // ✅ Hook 4: filters state (always called)
   const [filters, setFilters] = React.useState<FlightFiltersState>({
     stops: "any",
     priceRange: [0, 0],
     airlines: [],
   });
 
-  // ✅ Hook 5: sync price slider bounds when results change (always called)
   React.useEffect(() => {
     setFilters((prev) => ({
       ...prev,
@@ -68,7 +64,6 @@ export default function FlightResults({
     }));
   }, [priceBounds[0], priceBounds[1]]);
 
-  // ✅ Hook 6: apply filters (always called)
   const filteredCards = React.useMemo(() => {
     if (!cards.length) return [];
     const [minP, maxP] = filters.priceRange;
@@ -122,7 +117,7 @@ export default function FlightResults({
   return (
     <Box sx={{ mt: 2 }}>
       <Stack
-        direction={{ xs: "column", md: "row" }}
+        direction={{ xs: "column-reverse", md: "row" }}
         spacing={2}
         alignItems="stretch"
       >
@@ -156,6 +151,7 @@ export default function FlightResults({
             value={filters}
             onChange={setFilters}
           />
+          <PriceGraph offers={filteredCards} currency={currency} />
         </Box>
       </Stack>
     </Box>
