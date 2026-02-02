@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   Box,
   Paper,
@@ -12,12 +11,17 @@ import {
   Autocomplete,
   TextField,
   Chip,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
 } from "@mui/material";
 
 export type FlightFiltersState = {
   stops: "any" | "0" | "1" | "2+";
   priceRange: [number, number];
-  airlines: string[]; // airline codes
+  airlines: string[];
+  sort: "price_asc" | "price_desc";
 };
 
 export default function FlightFilters({
@@ -44,6 +48,20 @@ export default function FlightFilters({
       sx={{ p: 2, borderRadius: 3, marginY: { xs: 4.5 } }}
     >
       <Stack spacing={2}>
+        <FormControl fullWidth size="small">
+          <InputLabel id="sort-label">Sort</InputLabel>
+          <Select
+            labelId="sort-label"
+            label="Sort"
+            value={value.sort}
+            onChange={(e) =>
+              update({ sort: e.target.value as FlightFiltersState["sort"] })
+            }
+          >
+            <MenuItem value="price_asc">Price: Low to High</MenuItem>
+            <MenuItem value="price_desc">Price: High to Low</MenuItem>
+          </Select>
+        </FormControl>
         <Typography fontWeight={800}>Filters</Typography>
 
         {/* Stops */}

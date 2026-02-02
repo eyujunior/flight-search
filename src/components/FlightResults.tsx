@@ -5,9 +5,11 @@ import {
   Alert,
   Box,
   CircularProgress,
+  Skeleton,
   Stack,
-  Grid,
   Typography,
+  Paper,
+  Grid,
 } from "@mui/material";
 
 import type { FlightSearchParams } from "@/hooks/useFlightOffers";
@@ -17,6 +19,8 @@ import FlightCard from "@/components/FlightCard";
 import FlightFilters, {
   type FlightFiltersState,
 } from "@/components/FlightFilters";
+import FlightCardSkeleton from "./skeletons/FlightCardSkeleton";
+import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import PriceGraph from "./Pricegraph";
 
 export default function FlightResults({
@@ -55,6 +59,7 @@ export default function FlightResults({
     stops: "any",
     priceRange: [0, 0],
     airlines: [],
+    sort: "price_asc",
   });
 
   React.useEffect(() => {
@@ -68,16 +73,13 @@ export default function FlightResults({
     if (!cards.length) return [];
     const [minP, maxP] = filters.priceRange;
 
-    return cards.filter((c) => {
-      // Stops
+    const filtered = cards.filter((c) => {
       if (filters.stops === "0" && c.stops !== 0) return false;
       if (filters.stops === "1" && c.stops !== 1) return false;
       if (filters.stops === "2+" && c.stops < 2) return false;
 
-      // Price
       if (c.priceTotal < minP || c.priceTotal > maxP) return false;
 
-      // Airlines (match ANY selected)
       if (filters.airlines.length > 0) {
         const has = filters.airlines.some((a) => c.airlineCodes.includes(a));
         if (!has) return false;
@@ -85,15 +87,54 @@ export default function FlightResults({
 
       return true;
     });
+
+    filtered.sort((a, b) => {
+      if (filters.sort === "price_desc") return b.priceTotal - a.priceTotal;
+      return a.priceTotal - b.priceTotal;
+    });
+
+    return filtered;
   }, [cards, filters]);
 
   if (!enabled) return null;
 
   if (q.isLoading) {
     return (
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 3 }}>
-        <CircularProgress size={22} />
-        <Typography color="text.secondary">Searching flights…</Typography>
+      <Box sx={{ mt: 2 }}>
+        <Stack
+          direction={{ xs: "column-reverse", md: "row" }}
+          spacing={2}
+          alignItems="stretch"
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mb: 1.5 }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CircularProgress size={18} />
+                <Typography color="text.secondary">
+                  Searching flights…
+                </Typography>
+              </Stack>
+              <Skeleton variant="text" width={140} height={20} />
+            </Stack>
+
+            <Grid container spacing={2}>
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <Grid key={idx} size={{ xs: 12, md: 6, lg: 4 }}>
+                  <FlightCardSkeleton />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+
+          <Box sx={{ width: { xs: "100%", md: 360 }, flexShrink: 0 }}>
+            <SidebarSkeleton />
+          </Box>
+        </Stack>
       </Box>
     );
   }
@@ -151,7 +192,10 @@ export default function FlightResults({
             value={filters}
             onChange={setFilters}
           />
-          <PriceGraph offers={filteredCards} currency={currency} />
+
+          <Box sx={{ mt: 2 }}>
+            <PriceGraph offers={filteredCards} currency={currency} />
+          </Box>
         </Box>
       </Stack>
     </Box>
