@@ -6,7 +6,9 @@ import Header from "@/components/layout/Header";
 import AppLayout from "@/layout/AppLayout";
 import SearchForm, { SearchFormValues } from "@/components/SearchForm";
 import FlightResults from "@/components/FlightResults";
+import FlightLottie from "@/components/FlightLottie";
 import type { FlightSearchParams } from "@/hooks/useFlightOffers";
+import { Flight } from "@mui/icons-material";
 
 export default function HomePage() {
   const [submitted, setSubmitted] = useState<FlightSearchParams | null>(null);
@@ -46,7 +48,11 @@ export default function HomePage() {
             }}
           />
 
-          <FlightResults params={submitted} enabled={!!submitted} />
+          {!submitted ? (
+            <FlightLottie />
+          ) : (
+            <FlightResults params={submitted} enabled={!!submitted} />
+          )}
         </Stack>
       </AppLayout>
     </Box>

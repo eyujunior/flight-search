@@ -193,7 +193,7 @@ export default function SearchForm({
 
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3.5, xl: 2 }}>
           <TextField
-            label="Departure"
+            label="Departure Date"
             type="date"
             value={value.departureDate}
             onChange={(e) => update({ departureDate: e.target.value })}
@@ -204,7 +204,7 @@ export default function SearchForm({
 
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 2 }}>
           <TextField
-            label="Return"
+            label="Return Date (Optional)"
             type="date"
             value={value.returnDate}
             onChange={(e) => update({ returnDate: e.target.value })}
