@@ -49,6 +49,12 @@ function renderOptionRow(
   );
 }
 
+type FieldErrors = {
+  origin: boolean;
+  destination: boolean;
+  departureDate: boolean;
+};
+
 export default function SearchForm({
   value,
   onChange,
@@ -63,12 +69,15 @@ export default function SearchForm({
   const update = (patch: Partial<SearchFormValues>) =>
     onChange({ ...value, ...patch });
 
-  const swap = () =>
+  const swap = () => {
     onChange({
       ...value,
       origin: value.destination,
       destination: value.origin,
     });
+
+    setErrors((prev) => ({ ...prev, origin: false, destination: false }));
+  };
 
   const [originInput, setOriginInput] = React.useState("");
   const [destinationInput, setDestinationInput] = React.useState("");
@@ -79,6 +88,30 @@ export default function SearchForm({
   const originQuery = useLocations(originQ);
   const destinationQuery = useLocations(destinationQ);
 
+  // Required field validation
+  const [errors, setErrors] = React.useState<FieldErrors>({
+    origin: false,
+    destination: false,
+    departureDate: false,
+  });
+
+  const validate = React.useCallback(() => {
+    const next: FieldErrors = {
+      origin: !value.origin,
+      destination: !value.destination,
+      departureDate: !value.departureDate,
+    };
+    setErrors(next);
+    return !Object.values(next).some(Boolean);
+  }, [value.origin, value.destination, value.departureDate]);
+
+  const handleSubmit = () => {
+    if (isSubmitting) return;
+    if (!validate()) return;
+    onSubmit();
+  };
+
+  // If departure is cleared, clear return date
   React.useEffect(() => {
     if (!value.departureDate && value.returnDate) {
       update({ returnDate: "" });
@@ -88,7 +121,7 @@ export default function SearchForm({
 
   return (
     <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, marginBottom: 4 }}>
-      <Grid container spacing={2} alignItems="center">
+      <Grid container spacing={2} rowSpacing={0} alignItems="start">
         <Grid size={{ xs: 12, sm: 5.5, md: 5, lg: 3.5, xl: 2.5 }}>
           <Autocomplete
             options={originQuery.data ?? []}
@@ -96,7 +129,10 @@ export default function SearchForm({
             value={value.origin}
             inputValue={originInput}
             onInputChange={(_, v) => setOriginInput(v)}
-            onChange={(_, v) => update({ origin: v })}
+            onChange={(_, v) => {
+              update({ origin: v });
+              if (v) setErrors((e) => ({ ...e, origin: false }));
+            }}
             getOptionLabel={optionLabel}
             renderOption={renderOptionRow}
             filterOptions={(x) => x}
@@ -112,6 +148,8 @@ export default function SearchForm({
                 {...params}
                 label="From"
                 placeholder="Type city or airport"
+                error={errors.origin}
+                helperText={errors.origin ? "Origin is required" : " "}
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
@@ -134,6 +172,7 @@ export default function SearchForm({
           sx={{
             display: "flex",
             justifyContent: { xs: "center", md: "center" },
+            marginTop: 1,
           }}
         >
           <IconButton
@@ -158,7 +197,10 @@ export default function SearchForm({
             value={value.destination}
             inputValue={destinationInput}
             onInputChange={(_, v) => setDestinationInput(v)}
-            onChange={(_, v) => update({ destination: v })}
+            onChange={(_, v) => {
+              update({ destination: v });
+              if (v) setErrors((e) => ({ ...e, destination: false }));
+            }}
             getOptionLabel={optionLabel}
             renderOption={renderOptionRow}
             filterOptions={(x) => x}
@@ -174,6 +216,10 @@ export default function SearchForm({
                 {...params}
                 label="To"
                 placeholder="Type city or airport"
+                error={errors.destination}
+                helperText={
+                  errors.destination ? "Destination is required" : " "
+                }
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
@@ -196,8 +242,17 @@ export default function SearchForm({
             label="Departure Date"
             type="date"
             value={value.departureDate}
-            onChange={(e) => update({ departureDate: e.target.value })}
+            onChange={(e) => {
+              update({ departureDate: e.target.value });
+              if (e.target.value) {
+                setErrors((er) => ({ ...er, departureDate: false }));
+              }
+            }}
             InputLabelProps={{ shrink: true }}
+            error={errors.departureDate}
+            helperText={
+              errors.departureDate ? "Departure date is required" : " "
+            }
             fullWidth
           />
         </Grid>
@@ -214,6 +269,7 @@ export default function SearchForm({
             }}
             disabled={!value.departureDate}
             fullWidth
+            helperText=" "
           />
         </Grid>
 
@@ -225,6 +281,7 @@ export default function SearchForm({
             onChange={(e) => update({ adults: Number(e.target.value) })}
             inputProps={{ min: 1, max: 9 }}
             fullWidth
+            helperText=" "
           />
         </Grid>
 
@@ -237,7 +294,7 @@ export default function SearchForm({
           <Button
             variant="contained"
             disableElevation
-            onClick={onSubmit}
+            onClick={handleSubmit}
             disabled={!!isSubmitting}
             fullWidth
             sx={{
