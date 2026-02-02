@@ -68,7 +68,13 @@ function buildStopsTooltip(offer: FlightCardVM) {
   return parts.join(" --> ");
 }
 
-export default function FlightCard({ offer }: { offer: FlightCardVM }) {
+export default function FlightCard({
+  offer,
+  isBestDeal,
+}: {
+  offer: FlightCardVM;
+  isBestDeal?: boolean;
+}) {
   const airlineLabel =
     offer.airlineCodes.length > 0 ? offer.airlineCodes.join(" · ") : "—";
 
@@ -95,7 +101,17 @@ export default function FlightCard({ offer }: { offer: FlightCardVM }) {
             justifyContent="space-between"
             alignItems="baseline"
           >
-            <Typography fontWeight={900}>{airlineLabel}</Typography>
+            <Stack direction="row" gap={1} alignItems="center">
+              <Typography fontWeight={900}>{airlineLabel}</Typography>
+              {isBestDeal && (
+                <Chip
+                  label="Best deal"
+                  color="success"
+                  size="small"
+                  sx={{ fontWeight: 600 }}
+                />
+              )}
+            </Stack>
             <Typography color="primary.main" fontWeight={700} fontSize={18}>
               {offer.currency} {offer.priceTotal.toFixed(0)}
             </Typography>

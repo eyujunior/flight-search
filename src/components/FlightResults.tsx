@@ -96,6 +96,11 @@ export default function FlightResults({
     return filtered;
   }, [cards, filters]);
 
+  const cheapestPrice = React.useMemo(() => {
+    if (!filteredCards.length) return null;
+    return Math.min(...filteredCards.map((c) => c.priceTotal));
+  }, [filteredCards]);
+
   if (!enabled) return null;
 
   if (q.isLoading) {
@@ -178,7 +183,10 @@ export default function FlightResults({
           <Grid container spacing={2}>
             {filteredCards.map((c) => (
               <Grid key={c.id} size={{ xs: 12, md: 6, lg: 4 }}>
-                <FlightCard offer={c} />
+                <FlightCard
+                  isBestDeal={c.priceTotal === cheapestPrice}
+                  offer={c}
+                />
               </Grid>
             ))}
           </Grid>
